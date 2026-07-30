@@ -2,7 +2,7 @@
 import { computed, ref, useId, useTemplateRef } from "vue"
 
 import DropdownWrapper from "@/components/DropdownWrapper.vue"
-import { spec } from "@/lib/legacy"
+import type { ItemGroup } from "@/lib/item-groups"
 import type { Item, Recipe } from "@/lib/types"
 import { useSettingsStore } from "@/stores/settings"
 import { useSpecStore, type BuildTargetView } from "@/stores/spec"
@@ -34,8 +34,14 @@ function matches(item: Item): boolean {
 }
 
 const visibleItems = computed(() =>
-    query.value === "" ? [] : spec.itemTiers.flat().filter(matches),
+    query.value === "" ? [] : store.pickerGroups.flatMap((group) => group.items).filter(matches),
 )
+
+// A group whose every icon is filtered out drops its heading too, so the search
+// results do not sit under a wall of empty categories.
+function groupMatches(group: ItemGroup): boolean {
+    return group.items.some(matches)
+}
 
 function onSearchKeyup(event: KeyboardEvent): void {
     if (query.value === "") {
@@ -76,6 +82,7 @@ function onRateChange(event: Event): void {
 
         <DropdownWrapper
             ref="itemDropdown"
+            class="itemPicker"
             @open="searchInput?.focus()"
             @close="search = ''"
         >
@@ -86,8 +93,9 @@ function onRateChange(event: Event): void {
                 placeholder="Search"
                 @keyup="onSearchKeyup"
             >
-            <div v-for="(tier, t) in spec.itemTiers" :key="t">
-                <span v-for="item in tier" :key="item.key">
+            <div v-for="group in store.pickerGroups" :key="group.name" class="itemGroup">
+                <div v-show="groupMatches(group)" class="groupLabel">{{ group.name }}</div>
+                <span v-for="item in group.items" :key="item.key">
                     <input
                         :id="`${itemGroup}-${item.key}`"
                         :name="itemGroup"

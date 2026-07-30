@@ -14,7 +14,7 @@ limitations under the License.*/
 
 import { CirclePath, makeCurve } from "./circlepath.js"
 import { spec } from "./factory.js"
-import { colorList, iconSize, getColorMaps, renderNode } from "./graph.js"
+import { colorList, iconSize, getColorMaps, installNodeClicks, renderNode } from "./graph.js"
 import { one } from "./rational.js"
 
 import * as d3sankey from "./d3-sankey/index.js"
@@ -216,7 +216,7 @@ export function renderSankey(data, ignore) {
         overlayData.push({rect, node, recipe})
     }
     graphTab.style("display", origDisplay)
-    svg.append("g")
+    let overlay = svg.append("g")
         .classed("overlay", true)
         .selectAll("rect")
         .data(overlayData)
@@ -229,6 +229,7 @@ export function renderSankey(data, ignore) {
             .attr("height", d => d.rect.height)
             .on("mouseover", (event, d) => d.node.highlight())
             .on("mouseleave", (event, d) => d.node.unhighlight())
-            .append("title")
-                .text(d => d.node.name + (d.node.count.isZero() ? "" : `\n${d.node.building.name} \u00d7 ${spec.format.count(d.node.count)}`))
+    overlay.append("title")
+        .text(d => d.node.name + (d.node.count.isZero() ? "" : `\n${d.node.building.name} \u00d7 ${spec.format.count(d.node.count)}`))
+    installNodeClicks(overlay, d => d.node)
 }

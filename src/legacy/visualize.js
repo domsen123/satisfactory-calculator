@@ -209,6 +209,8 @@ export function renderTotals(totals, ignore) {
             svg.on("mousedown", null)
             svg.on("mousemove", null)
             svg.on("mouseup", null)
+            // Nothing pans in fixed mode, so node clicks need no drag guard.
+            svg.on("click.dragguard", null)
         }
     }
 

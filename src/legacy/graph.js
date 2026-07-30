@@ -14,6 +14,9 @@ limitations under the License.*/
 
 // Code common between the Sankey and boxline visualizations.
 
+import { publishGraphNodeClick } from "../lib/graph-bus"
+import { spec } from "./factory.js"
+
 export const colorList = [
     "#1f77b4", // blue
     "#8c564b", // brown
@@ -95,6 +98,26 @@ export function getColorMaps(nodes, links) {
         }
     }
     return [itemColors, recipeColors]
+}
+
+// The resource recipes are the only ones with a choice of building (miner mk1-3
+// for the mineral nodes, the pump for oil), so they are the only nodes worth
+// opening a picker for. Water and nitrogen have no minerSettings entry.
+function isConfigurable(node) {
+    return spec.minerSettings.has(node.recipe)
+}
+
+// Flags the clickable node overlays and hands clicks to the Vue layer, which
+// renders the picker. The two visualizers bind different data to their overlay
+// rects, so each passes an accessor for its own datum.
+export function installNodeClicks(overlay, getNode) {
+    overlay.classed("configurable", d => isConfigurable(getNode(d)))
+    overlay.filter(d => isConfigurable(getNode(d)))
+        .on("click", function(event, d) {
+            // The rect's own box, not the pointer: the picker is anchored to the
+            // node so it stays put while the pointer moves over it.
+            publishGraphNodeClick(getNode(d).recipe, this.getBoundingClientRect())
+        })
 }
 
 export function renderNode(rects, recipeColors, ignore) {

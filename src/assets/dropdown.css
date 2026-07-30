@@ -57,6 +57,24 @@
     border-color: var(--accent);
     border-style: solid;
 }
+/* The widest category holds seventeen 64px icons, which at max-content would run
+   off the screen, so the open picker is capped and the icons wrap. */
+.dropdownWrapper.itemPicker.open .dropdown {
+    max-width: min(90vw, 820px);
+}
+
+/* Category headings in the item picker. Hidden along with the icons while the
+   dropdown is closed, so the collapsed dropdown still shows nothing but the
+   selected item's icon. */
+.dropdownWrapper .dropdown .groupLabel {
+    display: none;
+}
+.dropdownWrapper.open .dropdown .groupLabel {
+    display: block;
+    color: var(--accent);
+    font-weight: bold;
+    margin: 0.3em 0 0.1em 2px;
+}
 .dropdownWrapper .dropdown input[type="radio"] {
     display: none;
 }

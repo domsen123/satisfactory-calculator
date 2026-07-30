@@ -1,6 +1,7 @@
 import { computed, ref, shallowRef } from "vue"
 import { defineStore } from "pinia"
 
+import { buildItemGroups, type ItemGroup } from "@/lib/item-groups"
 import { buildItemsTable, type ItemsTableView } from "@/lib/items-table"
 import { getRecipeGroups, one, Rational, resourcePurities, spec, zero } from "@/lib/legacy"
 import type { PriorityLevel, PriorityResource } from "@/lib/priority"
@@ -74,6 +75,16 @@ export interface MinerResourceView {
 // is memoised rather than recomputed for every solve.
 let cachedRecipeGroups: Recipe[][] | null = null
 
+// Likewise for the item picker's categories.
+let cachedItemGroups: ItemGroup[] | null = null
+
+function itemGroups(): ItemGroup[] {
+    if (cachedItemGroups === null) {
+        cachedItemGroups = buildItemGroups(spec.items)
+    }
+    return cachedItemGroups
+}
+
 function recipeGroups(): Recipe[][] {
     if (cachedRecipeGroups === null) {
         cachedRecipeGroups = Array.from(getRecipeGroups(new Set(spec.recipes.values())))
@@ -137,6 +148,13 @@ export const useSpecStore = defineStore("spec", () => {
         }))
     })
 
+    // Item picker: the game's items in category order. Same "first solve means
+    // the data is loaded" gate as recipeToggles below.
+    const pickerGroups = computed<ItemGroup[]>(() => {
+        void revision.value
+        return totals.value === null ? [] : itemGroups()
+    })
+
     // Alt-Recipes: groups of interchangeable recipes, with the enabled ones
     // flagged.
     const recipeToggles = computed<RecipeToggle[][]>(() => {
@@ -189,6 +207,16 @@ export const useSpecStore = defineStore("spec", () => {
         }
         return result
     })
+
+    // Same rows, looked up by the recipe a clicked graph node carries. Keyed by
+    // recipe.key rather than the object so the caller cannot miss on identity.
+    const minerSettingsByRecipe = computed<Map<string, MinerResourceView>>(
+        () => new Map(minerSettings.value.map((view) => [view.recipe.key, view])),
+    )
+
+    function minerSettingFor(recipe: Recipe): MinerResourceView | null {
+        return minerSettingsByRecipe.value.get(recipe.key) ?? null
+    }
 
     function setMiner(recipe: Recipe, miner: Building, purity: ResourcePurity): void {
         spec.setMiner(recipe, miner, purity)
@@ -388,8 +416,10 @@ export const useSpecStore = defineStore("spec", () => {
         revision,
         itemsTable,
         targets,
+        pickerGroups,
         recipeToggles,
         minerSettings,
+        minerSettingFor,
         priorityLevels,
         debug,
         debugTableau,

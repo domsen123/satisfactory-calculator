@@ -73,6 +73,9 @@ const ZOOM_SCALE = 100
 const MAX_SCALE = 10
 // Aspect ratio of visualizer display.
 const ASPECT_RATIO = 16/9
+// Client-pixel distance past which a mousedown counts as a pan rather than a
+// click on a node.
+const DRAG_THRESHOLD = 3
 
 export function installSVGEvents(svg) {
     let node = svg.node()
@@ -156,13 +159,26 @@ export function installSVGEvents(svg) {
         setViewBox()
     }
     let clickPt = null
+    // Client coordinates of the mousedown, kept alongside clickPt: the pan
+    // itself works in SVG units, which change size with the zoom level, while
+    // the drag threshold has to be in screen pixels.
+    let downClient = null
+    let dragged = false
     function mouseDown(event) {
         clickPt = point(event)
+        downClient = {x: event.clientX, y: event.clientY}
+        dragged = false
         event.preventDefault()
     }
     function mouseMove(event) {
         if (clickPt === null) {
             return
+        }
+        if (
+            Math.abs(event.clientX - downClient.x) > DRAG_THRESHOLD ||
+            Math.abs(event.clientY - downClient.y) > DRAG_THRESHOLD
+        ) {
+            dragged = true
         }
         let pt = point(event)
         let dx = pt.x - clickPt.x
@@ -176,12 +192,22 @@ export function installSVGEvents(svg) {
         clickPt = null
         event.preventDefault()
     }
+    // A pan that ends on top of a node still produces a click on that node, so
+    // swallow it here, in the capture phase, before it reaches the overlay rect.
+    // Named so that re-rendering replaces this listener instead of stacking a
+    // second one on the surviving svg element.
+    function clickGuard(event) {
+        if (dragged) {
+            event.stopPropagation()
+        }
+    }
 
     setViewBox()
     svg.on("wheel", zoom)
     svg.on("mousedown", mouseDown)
     svg.on("mousemove", mouseMove)
     svg.on("mouseup", mouseUp)
+    svg.on("click.dragguard", clickGuard, {capture: true})
 }
 
 // debug events

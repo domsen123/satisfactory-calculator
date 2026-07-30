@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 import { spec } from "./factory.js"
-import { colorList, iconSize, nodeMargin, getColorMaps, renderNode } from "./graph.js"
+import { colorList, iconSize, nodeMargin, getColorMaps, installNodeClicks, renderNode } from "./graph.js"
 
 function edgePath(edge) {
     let start = edge.points[0]
@@ -160,7 +160,7 @@ export function renderBoxGraph({nodes, links}, ignore, callback) {
                 .attr("dy", "0.35em")
                 .text(d => d.label.text)
 
-            svg.select("g").append("g")
+            let overlay = svg.select("g").append("g")
                 .classed("overlay", true)
                 .selectAll("rect")
                 .data(nodes)
@@ -177,8 +177,9 @@ export function renderBoxGraph({nodes, links}, ignore, callback) {
                     .on("mouseout", (event, d) => {
                         d.unhighlight()
                     })
-                    .append("title")
-                        .text(d => d.name)
+            overlay.append("title")
+                .text(d => d.name)
+            installNodeClicks(overlay, d => d)
 
             callback()
         })
