@@ -3,6 +3,8 @@
 // to TypeScript. Only the members the ported code actually touches are listed;
 // extend as further tabs are ported.
 
+import type { PriorityList } from "./priority"
+
 export interface Rational {
     add(other: Rational): Rational
     sub(other: Rational): Rational
@@ -169,6 +171,8 @@ export interface FactorySpec {
     overclock: Map<Recipe, Rational>
     somersloop: Map<Recipe, Rational>
     format: Formatter
+    // null until the settings loader installs the default priority list.
+    priority: PriorityList | null
     lastTotals: Totals | null
     getBuilding(recipe: Recipe): Building | null
     getRecipeRate(recipe: Recipe): Rational | null

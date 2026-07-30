@@ -3,6 +3,7 @@ import { defineStore } from "pinia"
 
 import { buildItemsTable, type ItemsTableView } from "@/lib/items-table"
 import { getRecipeGroups, one, Rational, resourcePurities, spec, zero } from "@/lib/legacy"
+import type { PriorityLevel, PriorityResource } from "@/lib/priority"
 import { onSolution } from "@/lib/solution-bus"
 import type {
     Building,
@@ -19,6 +20,19 @@ const maxOverclock = Rational.from_float(250)
 export interface RecipeToggle {
     recipe: Recipe
     selected: boolean
+}
+
+export interface PriorityResourceView {
+    key: string
+    resource: PriorityResource
+    recipe: Recipe
+    weight: string
+}
+
+export interface PriorityLevelView {
+    key: number
+    level: PriorityLevel
+    resources: PriorityResourceView[]
 }
 
 export interface MinerCell {
@@ -166,6 +180,75 @@ export const useSpecStore = defineStore("spec", () => {
         spec.display()
     }
 
+    // Resources: priority levels, least valuable first.
+    const priorityLevels = computed<PriorityLevelView[]>(() => {
+        void revision.value
+        if (totals.value === null || spec.priority === null) {
+            return []
+        }
+        return spec.priority.priorities.map((level) => ({
+            key: level.id,
+            level,
+            resources: level.resources.map((resource) => ({
+                key: resource.recipe.key,
+                resource,
+                recipe: resource.recipe,
+                weight: resource.weight.toString(),
+            })),
+        }))
+    })
+
+    // The resource being dragged, and whether a drag is in flight. These are
+    // separate because the original cleared the drag item on drop but only
+    // dropped the .dragging class on dragend, which fires afterwards.
+    const priorityDragItem = shallowRef<PriorityResource | null>(null)
+    const priorityDragging = ref(false)
+    const hasPriorityDragItem = computed(() => priorityDragItem.value !== null)
+
+    function startPriorityDrag(resource: PriorityResource): void {
+        priorityDragItem.value = resource
+        priorityDragging.value = true
+    }
+
+    function endPriorityDrag(): void {
+        priorityDragging.value = false
+    }
+
+    // Runs a drop, which moves the dragged resource, then re-solves.
+    function finishPriorityDrag(move: (dragged: PriorityResource) => void): void {
+        const dragged = priorityDragItem.value
+        if (dragged === null) {
+            return
+        }
+        move(dragged)
+        priorityDragItem.value = null
+        spec.updateSolution()
+    }
+
+    function dropOnLevel(level: PriorityLevel, dragged: PriorityResource): void {
+        if (dragged.level !== level) {
+            level.insertSorted(dragged)
+        }
+    }
+
+    function dropBeforeLevel(level: PriorityLevel, dragged: PriorityResource): void {
+        spec.priority!.addPriorityBefore(level).insertSorted(dragged)
+    }
+
+    function dropBeforeFirstLevel(dragged: PriorityResource): void {
+        spec.priority!.addPriorityBefore(spec.priority!.getFirstLevel()).insertSorted(dragged)
+    }
+
+    function dropAfterLastLevel(dragged: PriorityResource): void {
+        spec.priority!.addPriorityBefore(null).insertSorted(dragged)
+    }
+
+    function setResourceWeight(resource: PriorityResource, text: string): void {
+        resource.weight = Rational.from_string(text)
+        resource.level?.insertSorted(resource)
+        spec.updateSolution()
+    }
+
     function addTarget(): void {
         spec.addTarget()
         spec.updateSolution()
@@ -236,8 +319,19 @@ export const useSpecStore = defineStore("spec", () => {
         targets,
         recipeToggles,
         minerSettings,
+        priorityLevels,
+        priorityDragging,
+        hasPriorityDragItem,
         toggleRecipe,
         setMiner,
+        startPriorityDrag,
+        endPriorityDrag,
+        finishPriorityDrag,
+        dropOnLevel,
+        dropBeforeLevel,
+        dropBeforeFirstLevel,
+        dropAfterLastLevel,
+        setResourceWeight,
         toggleIgnore,
         setOverclock,
         cycleSomersloop,

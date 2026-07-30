@@ -17,6 +17,7 @@ import { onMounted } from "vue"
 import AltRecipesTab from "@/components/AltRecipesTab.vue"
 import ItemsTab from "@/components/ItemsTab.vue"
 import MinersTab from "@/components/MinersTab.vue"
+import ResourcesTab from "@/components/ResourcesTab.vue"
 import SettingsTab from "@/components/SettingsTab.vue"
 import TargetList from "@/components/TargetList.vue"
 import { clickTab, changeVisType, changeVisRender, toggleDebug } from "@/legacy/events.js"
@@ -103,7 +104,7 @@ const TABS: Array<{ id: string; label: string }> = [
     <div id="resources_tab" class="tab">
         <p>Click and drag items to configure resource priority.<br />
         Higher numbers = more common</p>
-        <div id="resource_settings"></div>
+        <ResourcesTab />
     </div>
 
     <div id="miners_tab" class="tab">
