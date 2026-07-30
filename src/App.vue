@@ -16,13 +16,8 @@ import { onMounted } from "vue"
 
 import ItemsTab from "@/components/ItemsTab.vue"
 import SettingsTab from "@/components/SettingsTab.vue"
-import {
-    plusHandler,
-    clickTab,
-    changeVisType,
-    changeVisRender,
-    toggleDebug,
-} from "@/legacy/events.js"
+import TargetList from "@/components/TargetList.vue"
+import { clickTab, changeVisType, changeVisRender, toggleDebug } from "@/legacy/events.js"
 import { init } from "@/legacy/init.js"
 
 // Shell stage of the Vue migration: this component owns the static skeleton
@@ -45,11 +40,7 @@ const TABS: Array<{ id: string; label: string }> = [
 </script>
 
 <template>
-    <ul id="targets">
-        <li id="plusButton">
-            <button class="targetButton ui" title="Add new item." @click="plusHandler()">+</button>
-        </li>
-    </ul>
+    <TargetList />
 
     <div class="tabs">
         <button

@@ -66,6 +66,8 @@ export interface Recipe {
     icon: Icon
     gives(item: Item): Rational
     uses?(item: Item): Rational
+    // Absent on DisabledRecipe, which never appears as a build-target recipe.
+    isNetProducer?(item: Item): boolean
     isResource(): boolean
     isReal(): boolean
     isDisable(): boolean
@@ -117,6 +119,27 @@ export interface Formatter {
     alignCount(count: Rational): string
 }
 
+export interface BuildTargetLike {
+    readonly id: number
+    index: number
+    itemKey: string
+    item: Item
+    recipe: Recipe | null
+    defaultRecipe: Recipe | null
+    changedBuilding: boolean
+    buildings: Rational
+    rate: Rational
+    buildingsText: string
+    rateText: string
+    recipes: Recipe[]
+    setItem(item: Item): void
+    setRecipe(recipe: Recipe): void
+    updateRecipes(): void
+    getRate(): Rational
+    buildingsChanged(): void
+    rateChanged(): void
+}
+
 export interface FactorySpec {
     items: Map<string, Item>
     recipes: Map<string, Recipe>
@@ -124,12 +147,16 @@ export interface FactorySpec {
     pipes: Map<string, Belt>
     belt: Belt
     pipe: Belt
+    itemTiers: Item[][]
+    buildTargets: BuildTargetLike[]
+    disable: Set<Recipe>
     ignore: Set<Item>
     overclock: Map<Recipe, Rational>
     somersloop: Map<Recipe, Rational>
     format: Formatter
     lastTotals: Totals | null
     getBuilding(recipe: Recipe): Building | null
+    getRecipeRate(recipe: Recipe): Rational | null
     getCount(recipe: Recipe, rate: Rational): Rational
     getOverclock(recipe: Recipe): Rational
     setOverclock(recipe: Recipe, overclock: Rational): void
@@ -139,6 +166,8 @@ export interface FactorySpec {
     getPowerUsage(recipe: Recipe, rate: Rational): { average: Rational; peak: Rational }
     getRecipes(item: Item): Recipe[]
     toggleIgnore(item: Item): void
+    addTarget(itemKey?: string): BuildTargetLike
+    removeTarget(target: BuildTargetLike): void
     setHash(): void
     display(): void
     updateSolution(): void

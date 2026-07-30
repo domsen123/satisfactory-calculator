@@ -13,13 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 import { spec } from "./factory.js"
 
-// build target events
-
-export function plusHandler() {
-    spec.addTarget()
-    spec.updateSolution()
-}
-
 // tab events
 
 export const DEFAULT_TAB = "graph"

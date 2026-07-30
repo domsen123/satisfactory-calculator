@@ -1,4 +1,4 @@
-import { ref, shallowRef } from "vue"
+import { computed, ref, shallowRef } from "vue"
 import { defineStore } from "pinia"
 
 import {
@@ -47,6 +47,9 @@ export const useSettingsStore = defineStore("settings", () => {
     // it loads, so they are captured once in load().
     const belts = shallowRef<Belt[]>([])
     const pipes = shallowRef<Belt[]>([])
+
+    // "second" / "minute" / "hour", for the build-target rate labels.
+    const longRate = computed(() => longRateNames.get(displayRate.value) ?? "")
 
     const rateOptions: RateOption[] = Array.from(longRateNames, ([rateName, longRateName]) => ({
         rateName,
@@ -155,6 +158,7 @@ export const useSettingsStore = defineStore("settings", () => {
         pipeKey,
         belts,
         pipes,
+        longRate,
         rateOptions,
         colorSchemeOptions,
         load,

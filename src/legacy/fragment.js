@@ -67,7 +67,7 @@ export function formatSettings(overrideTab, targets) {
         for (let target of spec.buildTargets) {
             let targetString = ""
             if (target.changedBuilding) {
-                targetString = `${target.itemKey}:f:${target.buildingInput.value}`
+                targetString = `${target.itemKey}:f:${target.buildingsText}`
                 if (target.recipe !== null && target.recipe !== target.defaultRecipe) {
                     targetString += `:${target.recipe.key}`
                 }

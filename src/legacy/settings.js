@@ -45,8 +45,9 @@ function renderTab(settings) {
 // build targets
 
 function renderTargets(settings) {
+    // The list itself is Vue-rendered from spec.buildTargets, so resetting the
+    // model is enough; removing the <li>s here would corrupt Vue's vdom.
     spec.buildTargets = []
-    d3.select("#targets li.target").remove()
 
     let targetSetting = settings.get("items")
     if (targetSetting !== undefined && targetSetting !== "") {
@@ -63,7 +64,7 @@ function renderTargets(settings) {
                     recipe = spec.recipes.get(recipeKey)
                 }
                 target.setBuildings(parts[2], recipe)
-                target.displayRecipes()
+                target.updateRecipes()
             } else if (type === "r") {
                 target.setRate(parts[2])
             } else {

@@ -19,7 +19,7 @@ import { PriorityList } from "./priority.js"
 import { Rational, zero, half, one } from "./rational.js"
 import { DISABLED_RECIPE_PREFIX } from "./recipe.js"
 import { solve } from "./solve.js"
-import { BuildTarget } from "./target.js"
+import { BuildTarget } from "../lib/build-target"
 import { reapTooltips } from "./tooltip.js"
 import { renderTotals } from "./visualize.js"
 
@@ -208,7 +208,7 @@ class FactorySpecification {
         // Update build targets.
         for (let target of this.buildTargets) {
             if (items.has(target.item)) {
-                target.displayRecipes()
+                target.updateRecipes()
             }
         }
     }
@@ -238,7 +238,7 @@ class FactorySpecification {
         // Update build targets.
         for (let target of this.buildTargets) {
             if (items.has(target.item)) {
-                target.displayRecipes()
+                target.updateRecipes()
             }
         }
     }
@@ -466,9 +466,8 @@ class FactorySpecification {
             itemKey = DEFAULT_ITEM_KEY
         }
         let item = this.items.get(itemKey)
-        let target = new BuildTarget(this.buildTargets.length, itemKey, item, this.itemTiers)
+        let target = new BuildTarget(this.buildTargets.length, itemKey, item)
         this.buildTargets.push(target)
-        d3.select("#targets").insert(() => target.element, "#plusButton")
         return target
     }
     removeTarget(target) {
@@ -476,7 +475,6 @@ class FactorySpecification {
         for (let i=target.index; i < this.buildTargets.length; i++) {
             this.buildTargets[i].index--
         }
-        d3.select(target.element).remove()
     }
     toggleIgnore(item) {
         if (this.ignore.has(item)) {
