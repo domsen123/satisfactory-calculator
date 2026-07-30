@@ -112,6 +112,16 @@ export class Tooltip {
     }
 }
 
+// Drops a tooltip from the registry. Vue components own their tooltips and
+// remove them on unmount, which happens after reapTooltips() has already run
+// for that update, so they must deregister explicitly.
+export function unregisterTooltip(tooltip) {
+    tooltipRegistry.delete(tooltip)
+    if (currentTooltip === tooltip) {
+        currentTooltip = null
+    }
+}
+
 export function reapTooltips() {
     let toReap = []
     for (let tooltip of tooltipRegistry) {

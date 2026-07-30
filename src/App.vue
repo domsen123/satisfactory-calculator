@@ -14,6 +14,7 @@ limitations under the License.-->
 <script setup lang="ts">
 import { onMounted } from "vue"
 
+import ItemsTab from "@/components/ItemsTab.vue"
 import {
     plusHandler,
     clickTab,
@@ -97,22 +98,7 @@ const TABS: Array<{ id: string; label: string }> = [
     </div>
 
     <div id="totals_tab" class="tab">
-        <table id="totals">
-        <thead><tr></tr></thead>
-        <tbody></tbody>
-        <tfoot>
-            <tr>
-                <td class="surplus"></td>
-                <td class="right-align power-label"><b>total average power: </b></td>
-                <td class="right-align pad"><tt></tt></td>
-            </tr>
-            <tr>
-                <td class="surplus"></td>
-                <td class="right-align power-label"><b>total peak power: </b></td>
-                <td class="right-align pad"><tt></tt></td>
-            </tr>
-        </tfoot>
-        </table>
+        <ItemsTab />
     </div>
 
     <div id="settings_tab" class="tab">

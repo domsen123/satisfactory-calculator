@@ -11,9 +11,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
+import { publishSolution } from "../lib/solution-bus"
 import { Formatter } from "./align.js"
 import { renderDebug } from "./debug.js"
-import { displayItems } from "./display.js"
 import { formatSettings } from "./fragment.js"
 import { PriorityList } from "./priority.js"
 import { Rational, zero, half, one } from "./rational.js"
@@ -558,7 +558,9 @@ class FactorySpecification {
         for (let target of this.buildTargets) {
             target.getRate()
         }
-        displayItems(this, this.lastTotals)
+        // The Items tab is a Vue component now; hand it the solution and let it
+        // re-render on its own schedule.
+        publishSolution(this.lastTotals)
         renderTotals(this.lastTotals, this.ignore)
         reapTooltips()
         this.setHash()
