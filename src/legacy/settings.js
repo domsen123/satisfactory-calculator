@@ -11,11 +11,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
-import { DEFAULT_RATE, DEFAULT_RATE_PRECISION, DEFAULT_COUNT_PRECISION, DEFAULT_FORMAT, longRateNames } from "./align.js"
 import { colorSchemes } from "./color.js"
-import { dropdown } from "./dropdown.js"
 import { DEFAULT_TAB, clickTab, DEFAULT_VISUALIZER, visualizerType, setVisualizerType, DEFAULT_RENDER, visualizerRender, setVisualizerRender } from "./events.js"
-import { spec, resourcePurities, DEFAULT_BELT, DEFAULT_PIPE } from "./factory.js"
+import { spec, resourcePurities } from "./factory.js"
 import { getRecipeGroups } from "./groups.js"
 import { Rational } from "./rational.js"
 import { renderRecipe } from "./recipe.js"
@@ -28,6 +26,11 @@ import { renderRecipe } from "./recipe.js"
 // 4) The setting is applied.
 // 5) The setting's GUI is placed into a consistent state.
 // Remember to add the setting to fragment.js, too!
+//
+// The Settings tab is a Vue component now. Its settings (title, display rate,
+// precisions, value format, color scheme, belt and pipe) are loaded by
+// stores/settings.ts, which init.js calls before renderSettings so that the
+// display rate is in place when build targets parse their rates.
 
 // tab
 
@@ -132,110 +135,12 @@ export function setTitle(s) {
     }
 }
 
-function renderTitle(settings) {
-    let input = d3.select("#title_setting").node()
-    let title = ""
-    if (settings.has("title")) {
-        title = decodeURIComponent(settings.get("title"))
-    }
-    input.value = title
-    setTitle(title)
-}
-
-// display rate
-
-function rateHandler() {
-    spec.format.setDisplayRate(this.value)
-    spec.display()
-}
-
-function renderRateOptions(settings) {
-    let rateName = DEFAULT_RATE
-    if (settings.has("rate")) {
-        rateName = settings.get("rate")
-    }
-    spec.format.setDisplayRate(rateName)
-    let rates = []
-    for (let [rateName, longRateName] of longRateNames) {
-        rates.push({rateName, longRateName})
-    }
-    let form = d3.select("#display_rate")
-    form.selectAll("*").remove()
-    let rateOption = form.selectAll("span")
-        .data(rates)
-        .join("span")
-    rateOption.append("input")
-        .attr("id", d => d.rateName + "_rate")
-        .attr("type", "radio")
-        .attr("name", "rate")
-        .attr("value", d => d.rateName)
-        .attr("checked", d => d.rateName === rateName ? "" : null)
-        .on("change", rateHandler)
-    rateOption.append("label")
-        .attr("for", d => d.rateName + "_rate")
-        .text(d => "items/" + d.longRateName)
-    rateOption.append("br")
-}
-
-// precisions
-
-function renderPrecisions(settings) {
-    spec.format.ratePrecision = DEFAULT_RATE_PRECISION
-    if (settings.has("rp")) {
-        spec.format.ratePrecision = Number(settings.get("rp"))
-    }
-    // These controls live in App.vue's template. Vue writes value/checked as
-    // DOM properties, which sets the element's dirty flag, after which the
-    // content attribute no longer drives what is displayed. Write the property.
-    d3.select("#rprec").property("value", spec.format.ratePrecision)
-    spec.format.countPrecision = DEFAULT_COUNT_PRECISION
-    if (settings.has("cp")) {
-        spec.format.countPrecision = Number(settings.get("cp"))
-    }
-    d3.select("#cprec").property("value", spec.format.countPrecision)
-}
-
-// value format
-
-let displayFormats = new Map([
-    ["d", "decimal"],
-    ["r", "rational"],
-])
-
-function renderValueFormat(settings) {
-    spec.format.displayFormat = DEFAULT_FORMAT
-    if (settings.has("vf")) {
-        spec.format.displayFormat = displayFormats.get(settings.get("vf"))
-    }
-    let input = document.getElementById(spec.format.displayFormat + "_format")
-    input.checked = true
-}
-
 // color scheme
 export const DEFAULT_COLOR_SCHEME = "default"
 
 export let colorScheme
 
-function renderColorScheme(settings) {
-    let color = DEFAULT_COLOR_SCHEME
-    if (settings.has("c")) {
-        color = settings.get("c")
-    }
-    setColorScheme(color)
-    d3.select("#color_scheme")
-        .on("change", function(event, d) {
-            setColorScheme(event.target.value)
-            spec.display()
-        })
-        .selectAll("option")
-        .data(colorSchemes)
-        .join("option")
-            .attr("value", d => d.key)
-            .attr("selected", d => d.key === color ? true : null)
-            .text(d => d.name)
-}
-
-function setColorScheme(schemeKey) {
+export function setColorScheme(schemeKey) {
     for (let scheme of colorSchemes) {
         if (scheme.key === schemeKey) {
             colorScheme = scheme
@@ -243,72 +148,6 @@ function setColorScheme(schemeKey) {
             return
         }
     }
-}
-
-// belt
-
-function beltHandler(event, belt) {
-    spec.belt = belt
-    spec.display()
-}
-
-function pipeHandler(event, pipe) {
-    spec.pipe = pipe
-    spec.display()
-}
-
-function renderBelts(settings) {
-    let beltKey = DEFAULT_BELT
-    if (settings.has("belt")) {
-        beltKey = settings.get("belt")
-    }
-    spec.belt = spec.belts.get(beltKey)
-
-    let pipeKey = DEFAULT_PIPE
-    if (settings.has("pipe")) {
-        pipeKey = settings.get("pipe")
-    }
-    spec.pipe = spec.pipes.get(pipeKey)
-
-    let belts = []
-    for (let [beltKey, belt] of spec.belts) {
-        belts.push(belt)
-    }
-    let form = d3.select("#belt_selector")
-    form.selectAll("*").remove()
-    let beltOption = form.selectAll("span")
-        .data(belts)
-        .join("span")
-    beltOption.append("input")
-        .attr("id", d => "belt." + d.key)
-        .attr("type", "radio")
-        .attr("name", "belt")
-        .attr("value", d => d.key)
-        .attr("checked", d => d === spec.belt ? "" : null)
-        .on("change", beltHandler)
-    beltOption.append("label")
-        .attr("for", d => "belt." + d.key)
-        .append(d => d.icon.make(32))
-
-    let pipes = []
-    for (let [pipeKey, pipe] of spec.pipes) {
-        pipes.push(pipe)
-    }
-    form = d3.select("#pipe_selector")
-    form.selectAll("*").remove()
-    let pipeOption = form.selectAll("span")
-        .data(pipes)
-        .join("span")
-    pipeOption.append("input")
-        .attr("id", d => "pipe." + d.key)
-        .attr("type", "radio")
-        .attr("name", "pipe")
-        .attr("value", d => d.key)
-        .attr("checked", d => d === spec.pipe ? "" : null)
-        .on("change", pipeHandler)
-    pipeOption.append("label")
-        .attr("for", d => "pipe." + d.key)
-        .append(d => d.icon.make(32))
 }
 
 // visualizer
@@ -498,15 +337,9 @@ function renderDebugCheckbox(settings) {
 }
 
 export function renderSettings(settings) {
-    renderTitle(settings)
     renderIgnore(settings)
     renderOverclock(settings)
     renderSomersloop(settings)
-    renderRateOptions(settings)
-    renderPrecisions(settings)
-    renderValueFormat(settings)
-    renderColorScheme(settings)
-    renderBelts(settings)
     renderVisualizer(settings)
     renderResources(settings)
     renderResourcePriorities(settings)

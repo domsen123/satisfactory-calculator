@@ -15,13 +15,10 @@ limitations under the License.-->
 import { onMounted } from "vue"
 
 import ItemsTab from "@/components/ItemsTab.vue"
+import SettingsTab from "@/components/SettingsTab.vue"
 import {
     plusHandler,
     clickTab,
-    changeTitle,
-    changeRatePrecision,
-    changeCountPrecision,
-    changeFormat,
     changeVisType,
     changeVisRender,
     toggleDebug,
@@ -102,58 +99,7 @@ const TABS: Array<{ id: string; label: string }> = [
     </div>
 
     <div id="settings_tab" class="tab">
-        <table id="settings">
-        <tr class="setting-section">
-        <td colspan="2"><span>Display</span><hr></td>
-        </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label">Title:</td>
-            <td><input id="title_setting" type="text" size="30" placeholder="Satisfactory Calculator" @input="changeTitle($event)"></td>
-            </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label top">Display rates as:</td>
-            <td><form id="display_rate"></form></td>
-            </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label">Rate precision:</td>
-            <td><input id="rprec" class="prec" type="number" value="3" min="0" @change="changeRatePrecision($event)"></td>
-            </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label">Count precision:</td>
-            <td><input id="cprec" class="prec" type="number" value="1" min="0" @change="changeCountPrecision($event)"></td>
-            </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label top">Format values as:</td>
-            <td><form id="value_format">
-                <input id="decimal_format" type="radio" name="format" value="decimal" checked @change="changeFormat($event)"><label for="decimal_format">Decimals</label><br />
-                <input id="rational_format" type="radio" name="format" value="rational" @change="changeFormat($event)"><label for="rational_format">Rationals</label><br />
-            </form></td>
-            </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label">Color scheme:</td>
-            <td><select id="color_scheme"></select></td>
-            </tr>
-
-        <tr class="setting-section">
-        <td colspan="2"><span>Factory</span><hr></td>
-        </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label">Belt:</td>
-            <td><span id="belt_selector" class="belt-setting"></span></td>
-            </tr>
-
-            <tr class="setting-row">
-            <td class="setting-label">Pipe:</td>
-            <td><span id="pipe_selector" class="belt-setting"></span></td>
-            </tr>
-        </table>
+        <SettingsTab />
     </div>
 
     <div id="recipes_tab" class="tab">

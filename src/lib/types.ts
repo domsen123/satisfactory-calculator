@@ -97,6 +97,12 @@ export interface Totals {
     consumers: Map<Item, Map<Recipe, Rational>>
 }
 
+export interface ColorScheme {
+    name: string
+    key: string
+    apply(): void
+}
+
 export interface Formatter {
     rateName: string
     longRate: string
@@ -104,6 +110,7 @@ export interface Formatter {
     displayFormat: string
     ratePrecision: number
     countPrecision: number
+    setDisplayRate(rate: string): void
     rate(rate: Rational): string
     alignRate(rate: Rational): string
     count(count: Rational): string
@@ -113,6 +120,8 @@ export interface Formatter {
 export interface FactorySpec {
     items: Map<string, Item>
     recipes: Map<string, Recipe>
+    belts: Map<string, Belt>
+    pipes: Map<string, Belt>
     belt: Belt
     pipe: Belt
     ignore: Set<Item>
@@ -130,6 +139,7 @@ export interface FactorySpec {
     getPowerUsage(recipe: Recipe, rate: Rational): { average: Rational; peak: Rational }
     getRecipes(item: Item): Recipe[]
     toggleIgnore(item: Item): void
+    setHash(): void
     display(): void
     updateSolution(): void
 }

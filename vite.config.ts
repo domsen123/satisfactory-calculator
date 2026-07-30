@@ -11,7 +11,16 @@ export default defineConfig({
             // The legacy modules build "images/icons.svg#right" style hrefs at
             // runtime against public/, so template URLs must stay verbatim
             // rather than being rewritten into module imports.
-            template: { transformAssetUrls: false },
+            template: {
+                transformAssetUrls: false,
+                compilerOptions: {
+                    // <tt> is obsolete, so it is absent from Vue's known-HTML
+                    // tag list and every occurrence is otherwise reported as an
+                    // unresolved component. The calculator relies on its
+                    // default monospace rendering for aligned numbers.
+                    isCustomElement: (tag) => tag === "tt",
+                },
+            },
         }),
     ],
     resolve: {

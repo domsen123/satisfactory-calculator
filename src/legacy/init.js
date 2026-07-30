@@ -18,6 +18,7 @@ import { loadSettings } from "./fragment.js"
 import { getItems } from "./item.js"
 import { getRecipes } from "./recipe.js"
 import { renderSettings } from "./settings.js"
+import { useSettingsStore } from "../stores/settings"
 
 function loadData(settings) {
     d3.json("data/data.json", {cache: "reload"}).then(function(data) {
@@ -28,6 +29,9 @@ function loadData(settings) {
         let pipes = getPipes(data)
         spec.setData(items, recipes, buildings, belts, pipes)
 
+        // Display settings first: build targets in renderSettings parse their
+        // rates against the display rate this establishes.
+        useSettingsStore().load(settings)
         renderSettings(settings)
 
         spec.updateSolution()
