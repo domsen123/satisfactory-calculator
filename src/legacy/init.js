@@ -19,6 +19,7 @@ import { getItems } from "./item.js"
 import { getRecipes } from "./recipe.js"
 import { renderSettings } from "./settings.js"
 import { useSettingsStore } from "../stores/settings"
+import { useSpecStore } from "../stores/spec"
 
 function loadData(settings) {
     d3.json("data/data.json", {cache: "reload"}).then(function(data) {
@@ -30,8 +31,12 @@ function loadData(settings) {
         spec.setData(items, recipes, buildings, belts, pipes)
 
         // Display settings first: build targets in renderSettings parse their
-        // rates against the display rate this establishes.
+        // rates against the display rate this establishes. The stores are called
+        // from here rather than from settings.js because importing them there
+        // would draw lib/legacy.ts into the legacy import cycle, where its
+        // module-level read of the spec singleton hits a temporal dead zone.
         useSettingsStore().load(settings)
+        useSpecStore().loadDebug(settings.has("debug"))
         renderSettings(settings)
 
         spec.updateSolution()

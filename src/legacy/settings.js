@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 import { colorSchemes } from "./color.js"
-import { DEFAULT_TAB, clickTab, DEFAULT_VISUALIZER, visualizerType, setVisualizerType, DEFAULT_RENDER, visualizerRender, setVisualizerRender } from "./events.js"
+import { DEFAULT_TAB, clickTab } from "./events.js"
 import { spec, resourcePurities } from "./factory.js"
 import { Rational } from "./rational.js"
 
@@ -150,24 +150,6 @@ export function setColorScheme(schemeKey) {
     }
 }
 
-// visualizer
-
-function renderVisualizer(settings) {
-    if (settings.has("vt")) {
-        setVisualizerType(settings.get("vt"))
-    } else {
-        setVisualizerType(DEFAULT_VISUALIZER)
-    }
-    // See renderPrecisions: these radios are Vue-rendered, so set the property.
-    d3.select(`#${visualizerType}_type`).property("checked", true)
-    if (settings.has("vr")) {
-        setVisualizerRender(settings.get("vr"))
-    } else {
-        setVisualizerRender(DEFAULT_RENDER)
-    }
-    d3.select(`#${visualizerRender}_render`).property("checked", true)
-}
-
 // recipe disabling
 
 function renderRecipes(settings) {
@@ -228,22 +210,13 @@ function renderResourcePriorities(settings) {
     }
 }
 
-// debug
-
-function renderDebugCheckbox(settings) {
-    spec.debug = settings.has("debug")
-    d3.select("#render_debug").property("checked", spec.debug)
-}
-
 export function renderSettings(settings) {
     renderIgnore(settings)
     renderOverclock(settings)
     renderSomersloop(settings)
-    renderVisualizer(settings)
     renderResources(settings)
     renderResourcePriorities(settings)
     renderRecipes(settings)
     renderTargets(settings)
-    renderDebugCheckbox(settings)
     renderTab(settings)
 }

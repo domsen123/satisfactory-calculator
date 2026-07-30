@@ -11,6 +11,12 @@ import {
 } from "@/legacy/align.js"
 import { colorSchemes as rawColorSchemes } from "@/legacy/color.js"
 import {
+    DEFAULT_VISUALIZER as rawDefaultVisualizer,
+    DEFAULT_RENDER as rawDefaultRender,
+    setVisualizerType as rawSetVisualizerType,
+    setVisualizerRender as rawSetVisualizerRender,
+} from "@/legacy/events.js"
+import {
     spec as rawSpec,
     DEFAULT_BELT as rawDefaultBelt,
     DEFAULT_PIPE as rawDefaultPipe,
@@ -88,3 +94,10 @@ export const resourcePurities = rawResourcePurities as ResourcePurity[]
 
 export const setColorScheme = rawSetColorScheme as (schemeKey: string) => void
 export const setTitle = rawSetTitle as (title: string) => void
+
+// The visualizer selection stays in events.js because fragment.js and
+// visualize.js read it directly; the store mirrors it for the radio buttons.
+export const DEFAULT_VISUALIZER = rawDefaultVisualizer as string
+export const DEFAULT_RENDER = rawDefaultRender as string
+export const setVisualizerType = rawSetVisualizerType as (type: string) => void
+export const setVisualizerRender = rawSetVisualizerRender as (render: string) => void

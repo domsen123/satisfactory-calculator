@@ -8,6 +8,7 @@ import { onSolution } from "@/lib/solution-bus"
 import type {
     Building,
     BuildTargetLike,
+    DebugMatrix,
     Item,
     Recipe,
     ResourcePurity,
@@ -20,6 +21,20 @@ const maxOverclock = Rational.from_float(250)
 export interface RecipeToggle {
     recipe: Recipe
     selected: boolean
+}
+
+export interface DebugMatrixRow {
+    // Set for the rows that correspond to a recipe; the last two are labelled.
+    recipe: Recipe | null
+    label: string
+    cells: string[]
+}
+
+export interface DebugMatrixView {
+    items: Item[]
+    recipes: Recipe[]
+    targets: Array<{ item: Item; recipe: Recipe }>
+    rows: DebugMatrixRow[]
 }
 
 export interface PriorityResourceView {
@@ -243,6 +258,62 @@ export const useSpecStore = defineStore("spec", () => {
         spec.priority!.addPriorityBefore(null).insertSorted(dragged)
     }
 
+    // Debug: the simplex tableau from the last solve, rendered only while the
+    // checkbox is on, matching the original's `if (this.debug) renderDebug()`.
+    const debug = ref(spec.debug)
+
+    function buildDebugMatrix(matrix: DebugMatrix | null): DebugMatrixView | null {
+        const meta = spec.lastMetadata
+        if (matrix === null || meta === null) {
+            return null
+        }
+        const rows: DebugMatrixRow[] = []
+        for (let r = 0; r < matrix.rows; r++) {
+            const cells: string[] = []
+            for (let c = 0; c < matrix.cols; c++) {
+                cells.push(matrix.index(r, c).toString())
+            }
+            rows.push({
+                recipe: r < meta.recipes.length ? meta.recipes[r]! : null,
+                label: r === matrix.rows - 2 ? "tax" : "answer",
+                cells,
+            })
+        }
+        return { items: meta.items, recipes: meta.recipes, targets: meta.targets, rows }
+    }
+
+    const debugTableau = computed<DebugMatrixView | null>(() => {
+        void revision.value
+        return debug.value ? buildDebugMatrix(spec.lastTableau) : null
+    })
+
+    const debugSolution = computed<DebugMatrixView | null>(() => {
+        void revision.value
+        return debug.value ? buildDebugMatrix(spec.lastSolution) : null
+    })
+
+    const debugMessage = computed(() => {
+        void revision.value
+        if (!debug.value) {
+            return ""
+        }
+        return spec.lastTableau === null
+            ? "No tableau required."
+            : "Displaying previous tableau."
+    })
+
+    function setDebug(value: boolean): void {
+        debug.value = value
+        spec.debug = value
+        spec.display()
+    }
+
+    // Applies the `debug` URL fragment setting.
+    function loadDebug(enabled: boolean): void {
+        debug.value = enabled
+        spec.debug = enabled
+    }
+
     function setResourceWeight(resource: PriorityResource, text: string): void {
         resource.weight = Rational.from_string(text)
         resource.level?.insertSorted(resource)
@@ -320,6 +391,12 @@ export const useSpecStore = defineStore("spec", () => {
         recipeToggles,
         minerSettings,
         priorityLevels,
+        debug,
+        debugTableau,
+        debugSolution,
+        debugMessage,
+        setDebug,
+        loadDebug,
         priorityDragging,
         hasPriorityDragItem,
         toggleRecipe,

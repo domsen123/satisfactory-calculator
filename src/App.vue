@@ -15,12 +15,14 @@ limitations under the License.-->
 import { onMounted } from "vue"
 
 import AltRecipesTab from "@/components/AltRecipesTab.vue"
+import DebugTab from "@/components/DebugTab.vue"
 import ItemsTab from "@/components/ItemsTab.vue"
 import MinersTab from "@/components/MinersTab.vue"
 import ResourcesTab from "@/components/ResourcesTab.vue"
 import SettingsTab from "@/components/SettingsTab.vue"
 import TargetList from "@/components/TargetList.vue"
-import { clickTab, changeVisType, changeVisRender, toggleDebug } from "@/legacy/events.js"
+import VisualizeTab from "@/components/VisualizeTab.vue"
+import { clickTab } from "@/legacy/events.js"
 import { init } from "@/legacy/init.js"
 
 // Shell stage of the Vue migration: this component owns the static skeleton
@@ -56,36 +58,7 @@ const TABS: Array<{ id: string; label: string }> = [
     </div>
 
     <div id="graph_tab" class="tab graph">
-        <div class="graph_setting">
-            <form id="graph_type">
-                <input id="sankey_type" type="radio" name="type" value="sankey" checked autocomplete="off" @change="changeVisType($event)">
-                <label for="sankey_type">
-                    <svg viewBox="0 0 64 64" width="64" height="64">
-                        <use href="images/icons.svg#sankey"></use>
-                    </svg>
-                </label>
-
-                <input id="boxline_type" type="radio" name="type" value="boxline" autocomplete="off" @change="changeVisType($event)">
-                <label for="boxline_type">
-                    <svg viewBox="0 0 64 64" width="64" height="64">
-                        <use href="images/icons.svg#boxline"></use>
-                    </svg>
-                </label>
-            </form>
-        </div>
-        <div class="graph_setting">
-            Render mode:<br>
-            <form id="graph_render">
-                <input id="zoom_render" type="radio" name="render" value="zoom" checked autocomplete="off" @change="changeVisRender($event)">
-                <label for="zoom_render">Zoom &amp; pan</label>
-
-                <input id="fix_render" type="radio" name="render" value="fix" autocomplete="off" @change="changeVisRender($event)">
-                <label for="fix_render">Fixed</label>
-            </form>
-        </div>
-        <div id="graph_container">
-        <svg id="graph"><g /></svg>
-        </div>
+        <VisualizeTab />
     </div>
 
     <div id="totals_tab" class="tab">
@@ -126,16 +99,7 @@ const TABS: Array<{ id: string; label: string }> = [
     </div>
     </div>
 
-    <div id="debug_tab" class="tab">
-        <div id="debug_message"></div>
-
-        <label for="render_debug">Render debug tab:</label>
-        <input type="checkbox" id="render_debug" @change="toggleDebug($event)"><br>
-        Last tableau:
-        <div id="debug_tableau"></div>
-        Last solution:
-        <div id="debug_solution"></div>
-    </div>
+    <DebugTab />
 
     <div id="footer"><a href="https://github.com/KirkMcDonald/satisfactory-calculator">GitHub</a> | <a href="https://discord.gg/yxrBKCP">Discord</a> | <a href="https://www.patreon.com/kirkmcdonald">Patreon</a></div>
 

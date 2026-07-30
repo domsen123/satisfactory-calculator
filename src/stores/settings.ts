@@ -4,6 +4,8 @@ import { defineStore } from "pinia"
 import {
     colorSchemes,
     DEFAULT_BELT,
+    DEFAULT_RENDER,
+    DEFAULT_VISUALIZER,
     DEFAULT_COLOR_SCHEME,
     DEFAULT_COUNT_PRECISION,
     DEFAULT_FORMAT,
@@ -13,6 +15,8 @@ import {
     longRateNames,
     setColorScheme,
     setTitle,
+    setVisualizerRender,
+    setVisualizerType,
     spec,
 } from "@/lib/legacy"
 import type { Belt } from "@/lib/types"
@@ -42,6 +46,8 @@ export const useSettingsStore = defineStore("settings", () => {
     const colorSchemeKey = ref(DEFAULT_COLOR_SCHEME)
     const beltKey = ref(DEFAULT_BELT)
     const pipeKey = ref(DEFAULT_PIPE)
+    const visualizerType = ref(DEFAULT_VISUALIZER)
+    const visualizerRender = ref(DEFAULT_RENDER)
 
     // Belt and pipe definitions come from the game data and never change after
     // it loads, so they are captured once in load().
@@ -97,6 +103,11 @@ export const useSettingsStore = defineStore("settings", () => {
             ? settings.get("pipe")!
             : DEFAULT_PIPE
         spec.pipe = spec.pipes.get(pipeKey.value)!
+
+        visualizerType.value = settings.get("vt") ?? DEFAULT_VISUALIZER
+        setVisualizerType(visualizerType.value)
+        visualizerRender.value = settings.get("vr") ?? DEFAULT_RENDER
+        setVisualizerRender(visualizerRender.value)
     }
 
     function setTitleSetting(value: string): void {
@@ -147,6 +158,18 @@ export const useSettingsStore = defineStore("settings", () => {
         spec.display()
     }
 
+    function setVisualizer(type: string): void {
+        visualizerType.value = type
+        setVisualizerType(type)
+        spec.display()
+    }
+
+    function setRenderMode(render: string): void {
+        visualizerRender.value = render
+        setVisualizerRender(render)
+        spec.display()
+    }
+
     return {
         title,
         displayRate,
@@ -156,6 +179,8 @@ export const useSettingsStore = defineStore("settings", () => {
         colorSchemeKey,
         beltKey,
         pipeKey,
+        visualizerType,
+        visualizerRender,
         belts,
         pipes,
         longRate,
@@ -170,5 +195,7 @@ export const useSettingsStore = defineStore("settings", () => {
         setColorSchemeKey,
         setBelt,
         setPipe,
+        setVisualizer,
+        setRenderMode,
     }
 })

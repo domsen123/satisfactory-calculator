@@ -174,6 +174,11 @@ export interface FactorySpec {
     // null until the settings loader installs the default priority list.
     priority: PriorityList | null
     lastTotals: Totals | null
+    debug: boolean
+    // Populated by the solver, and null when the solve needed no tableau.
+    lastTableau: DebugMatrix | null
+    lastSolution: DebugMatrix | null
+    lastMetadata: DebugMetadata | null
     getBuilding(recipe: Recipe): Building | null
     getRecipeRate(recipe: Recipe): Rational | null
     getCount(recipe: Recipe, rate: Rational): Rational
@@ -193,4 +198,17 @@ export interface FactorySpec {
     setHash(): void
     display(): void
     updateSolution(): void
+}
+
+// A simplex tableau, as produced by legacy/matrix.js.
+export interface DebugMatrix {
+    rows: number
+    cols: number
+    index(row: number, col: number): Rational
+}
+
+export interface DebugMetadata {
+    items: Item[]
+    recipes: Recipe[]
+    targets: Array<{ item: Item; recipe: Recipe }>
 }

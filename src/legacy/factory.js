@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 import { publishSolution } from "../lib/solution-bus"
 import { Formatter } from "./align.js"
-import { renderDebug } from "./debug.js"
 import { formatSettings } from "./fragment.js"
 import { PriorityList } from "../lib/priority"
 import { Rational, zero, half, one } from "./rational.js"
@@ -562,10 +561,6 @@ class FactorySpecification {
         renderTotals(this.lastTotals, this.ignore)
         reapTooltips()
         this.setHash()
-
-        if (this.debug) {
-            renderDebug()
-        }
     }
 }
 
