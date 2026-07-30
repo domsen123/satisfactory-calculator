@@ -10,7 +10,12 @@ import {
     longRateNames as rawLongRateNames,
 } from "@/legacy/align.js"
 import { colorSchemes as rawColorSchemes } from "@/legacy/color.js"
-import { spec as rawSpec, DEFAULT_BELT as rawDefaultBelt, DEFAULT_PIPE as rawDefaultPipe } from "@/legacy/factory.js"
+import {
+    spec as rawSpec,
+    DEFAULT_BELT as rawDefaultBelt,
+    DEFAULT_PIPE as rawDefaultPipe,
+    resourcePurities as rawResourcePurities,
+} from "@/legacy/factory.js"
 import { Rational as RawRational, zero as rawZero, one as rawOne } from "@/legacy/rational.js"
 import { formatSettings as rawFormatSettings } from "@/legacy/fragment.js"
 import { getRecipeGroups as rawGetRecipeGroups, topoSort as rawTopoSort } from "@/legacy/groups.js"
@@ -22,7 +27,14 @@ import {
 } from "@/legacy/settings.js"
 import { Tooltip as RawTooltip, unregisterTooltip as rawUnregisterTooltip } from "@/legacy/tooltip.js"
 
-import type { ColorScheme, FactorySpec, Item, Rational as RationalValue, Recipe } from "./types"
+import type {
+    ColorScheme,
+    FactorySpec,
+    Item,
+    Rational as RationalValue,
+    Recipe,
+    ResourcePurity,
+} from "./types"
 
 // Re-exported so callers can use `Rational` as both the factory and the type,
 // the way the legacy code reads.
@@ -71,6 +83,8 @@ export const DEFAULT_PIPE = rawDefaultPipe as string
 
 export const longRateNames = rawLongRateNames as Map<string, string>
 export const colorSchemes = rawColorSchemes as ColorScheme[]
+// Impure / Normal / Pure, in the order the miner tables list them.
+export const resourcePurities = rawResourcePurities as ResourcePurity[]
 
 export const setColorScheme = rawSetColorScheme as (schemeKey: string) => void
 export const setTitle = rawSetTitle as (title: string) => void

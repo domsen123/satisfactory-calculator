@@ -14,7 +14,9 @@ limitations under the License.-->
 <script setup lang="ts">
 import { onMounted } from "vue"
 
+import AltRecipesTab from "@/components/AltRecipesTab.vue"
 import ItemsTab from "@/components/ItemsTab.vue"
+import MinersTab from "@/components/MinersTab.vue"
 import SettingsTab from "@/components/SettingsTab.vue"
 import TargetList from "@/components/TargetList.vue"
 import { clickTab, changeVisType, changeVisRender, toggleDebug } from "@/legacy/events.js"
@@ -95,7 +97,7 @@ const TABS: Array<{ id: string; label: string }> = [
 
     <div id="recipes_tab" class="tab">
         <p>Click to toggle recipe.</p>
-        <div id="recipe_toggles"></div>
+        <AltRecipesTab />
     </div>
 
     <div id="resources_tab" class="tab">
@@ -105,7 +107,7 @@ const TABS: Array<{ id: string; label: string }> = [
     </div>
 
     <div id="miners_tab" class="tab">
-        <div id="miner_settings"></div>
+        <MinersTab />
     </div>
 
     <div id="about_tab" class="tab">

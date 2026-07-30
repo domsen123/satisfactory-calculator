@@ -2,12 +2,57 @@ import { computed, ref, shallowRef } from "vue"
 import { defineStore } from "pinia"
 
 import { buildItemsTable, type ItemsTableView } from "@/lib/items-table"
-import { one, Rational, spec, zero } from "@/lib/legacy"
+import { getRecipeGroups, one, Rational, resourcePurities, spec, zero } from "@/lib/legacy"
 import { onSolution } from "@/lib/solution-bus"
-import type { Building, BuildTargetLike, Item, Recipe, Totals } from "@/lib/types"
+import type {
+    Building,
+    BuildTargetLike,
+    Item,
+    Recipe,
+    ResourcePurity,
+    Totals,
+} from "@/lib/types"
 
 const hundred = Rational.from_float(100)
 const maxOverclock = Rational.from_float(250)
+
+export interface RecipeToggle {
+    recipe: Recipe
+    selected: boolean
+}
+
+export interface MinerCell {
+    id: string
+    minerDef: Building
+    purity: ResourcePurity
+    selected: boolean
+}
+
+export interface MinerPurityRow {
+    purityKey: string
+    purityName: string
+    cells: MinerCell[]
+}
+
+export interface MinerResourceView {
+    key: string
+    recipe: Recipe
+    minerDefs: Building[]
+    purities: MinerPurityRow[]
+}
+
+// The recipe grouping depends only on the game data, which is loaded once, so it
+// is memoised rather than recomputed for every solve.
+let cachedRecipeGroups: Recipe[][] | null = null
+
+function recipeGroups(): Recipe[][] {
+    if (cachedRecipeGroups === null) {
+        cachedRecipeGroups = Array.from(getRecipeGroups(new Set(spec.recipes.values())))
+            .filter((group) => group.size > 1)
+            .map((group) => Array.from(group))
+    }
+    return cachedRecipeGroups
+}
 
 // Per-revision snapshot of a build target. The raw instance rides along so the
 // actions can mutate it.
@@ -62,6 +107,64 @@ export const useSpecStore = defineStore("spec", () => {
             rateText: target.rateText,
         }))
     })
+
+    // Alt-Recipes: groups of interchangeable recipes, with the enabled ones
+    // flagged.
+    const recipeToggles = computed<RecipeToggle[][]>(() => {
+        void revision.value
+        // The components mount before init() loads the game data, and the spec's
+        // maps are null until then. The first solve is what publishes a revision,
+        // so that doubles as the "data is ready" signal.
+        if (totals.value === null) {
+            return []
+        }
+        return recipeGroups().map((group) =>
+            group.map((recipe) => ({ recipe, selected: !spec.disable.has(recipe) })),
+        )
+    })
+
+    function toggleRecipe(recipe: Recipe): void {
+        if (spec.disable.has(recipe)) {
+            spec.setEnable(recipe)
+        } else {
+            spec.setDisable(recipe)
+        }
+        spec.updateSolution()
+    }
+
+    // Miners: one table per resource recipe, a row per purity and a column per
+    // miner tier.
+    const minerSettings = computed<MinerResourceView[]>(() => {
+        void revision.value
+        if (totals.value === null) {
+            return []
+        }
+        const result: MinerResourceView[] = []
+        for (const [recipe, { miner, purity }] of spec.minerSettings) {
+            const minerDefs = spec.buildings.get(recipe.category!) ?? []
+            result.push({
+                key: recipe.key,
+                recipe,
+                minerDefs,
+                purities: resourcePurities.map((purityDef) => ({
+                    purityKey: purityDef.key,
+                    purityName: purityDef.name,
+                    cells: minerDefs.map((minerDef) => ({
+                        id: `miner.${recipe.key}.${purityDef.key}.${minerDef.key}`,
+                        minerDef,
+                        purity: purityDef,
+                        selected: miner === minerDef && purity === purityDef,
+                    })),
+                })),
+            })
+        }
+        return result
+    })
+
+    function setMiner(recipe: Recipe, miner: Building, purity: ResourcePurity): void {
+        spec.setMiner(recipe, miner, purity)
+        spec.display()
+    }
 
     function addTarget(): void {
         spec.addTarget()
@@ -131,6 +234,10 @@ export const useSpecStore = defineStore("spec", () => {
         revision,
         itemsTable,
         targets,
+        recipeToggles,
+        minerSettings,
+        toggleRecipe,
+        setMiner,
         toggleIgnore,
         setOverclock,
         cycleSomersloop,

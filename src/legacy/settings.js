@@ -14,9 +14,7 @@ limitations under the License.*/
 import { colorSchemes } from "./color.js"
 import { DEFAULT_TAB, clickTab, DEFAULT_VISUALIZER, visualizerType, setVisualizerType, DEFAULT_RENDER, visualizerRender, setVisualizerRender } from "./events.js"
 import { spec, resourcePurities } from "./factory.js"
-import { getRecipeGroups } from "./groups.js"
 import { Rational } from "./rational.js"
-import { renderRecipe } from "./recipe.js"
 
 // There are several things going on with this control flow. Settings should
 // work like this:
@@ -27,10 +25,11 @@ import { renderRecipe } from "./recipe.js"
 // 5) The setting's GUI is placed into a consistent state.
 // Remember to add the setting to fragment.js, too!
 //
-// The Settings tab is a Vue component now. Its settings (title, display rate,
-// precisions, value format, color scheme, belt and pipe) are loaded by
-// stores/settings.ts, which init.js calls before renderSettings so that the
-// display rate is in place when build targets parse their rates.
+// The Settings, Items, Alt-Recipes and Miners tabs and the build-target list are
+// Vue components now, so the renderers below only load state; the components
+// derive what they show from the spec singleton. The Settings tab's own settings
+// are loaded by stores/settings.ts, which init.js calls before renderSettings so
+// that the display rate is in place when build targets parse their rates.
 
 // tab
 
@@ -183,46 +182,9 @@ function renderRecipes(settings) {
     } else {
         spec.setDefaultDisable()
     }
-
-    let allGroups = getRecipeGroups(new Set(spec.recipes.values()))
-    let groups = []
-    for (let group of allGroups) {
-        if (group.size > 1) {
-            groups.push(Array.from(group))
-        }
-    }
-
-    let div = d3.select("#recipe_toggles")
-    div.selectAll("*").remove()
-    let recipe = div.selectAll("div")
-        .data(groups)
-        .join("div")
-            .classed("toggle-row", true)
-            .selectAll("div")
-            .data(d => d)
-            .join("div")
-                .classed("toggle recipe", true)
-                .classed("selected", d => !spec.disable.has(d))
-                .attr("title", d => d.name)
-                .on("click", function(event, d) {
-                    let disabled = spec.disable.has(d)
-                    d3.select(this).classed("selected", disabled)
-                    if (disabled) {
-                        spec.setEnable(d)
-                    } else {
-                        spec.setDisable(d)
-                    }
-                    spec.updateSolution()
-                })
-    renderRecipe(recipe)
 }
 
 // miners
-
-function mineHandler(event, d) {
-    spec.setMiner(d.recipe, d.miner, d.purity)
-    spec.display()
-}
 
 function renderResources(settings) {
     spec.initMinerSettings()
@@ -236,70 +198,6 @@ function renderResources(settings) {
             spec.setMiner(recipe, miner, purity)
         }
     }
-
-    let div = d3.select("#miner_settings")
-    div.selectAll("*").remove()
-    let resources = []
-    for (let [recipe, {miner, purity}] of spec.minerSettings) {
-        let minerDefs = spec.buildings.get(recipe.category)
-        let purities = []
-        for (let purityDef of resourcePurities) {
-            let miners = []
-            for (let minerDef of spec.buildings.get(recipe.category)) {
-                let selected = miner === minerDef && purity === purityDef
-                miners.push({
-                    recipe: recipe,
-                    purity: purityDef,
-                    miner: minerDef,
-                    selected: selected,
-                    id: `miner.${recipe.key}.${purityDef.key}.${minerDef.key}`
-                })
-            }
-            purities.push({miners, purityDef})
-        }
-        resources.push({recipe, purities, minerDefs})
-    }
-    let resourceTable = div.selectAll("table")
-        .data(resources)
-        .join("table")
-            .classed("resource", true)
-    let header = resourceTable.append("tr")
-    header.append("th")
-        .append(d => d.recipe.icon.make(32))
-    header.selectAll("th")
-        .filter((d, i) => i > 0)
-        .data(d => d.minerDefs)
-        .join("th")
-            .append(d => d.icon.make(32))
-    let purityRow = resourceTable.selectAll("tr")
-        .filter((d, i) => i > 0)
-        .data(d => d.purities)
-        .join("tr")
-    purityRow.append("td")
-        .text(d => d.purityDef.name)
-    let cell = purityRow.selectAll("td")
-        .filter((d, i) => i > 0)
-        .data(d => d.miners)
-        .join("td")
-    cell.append("input")
-        .attr("id", d => d.id)
-        .attr("type", "radio")
-        .attr("name", d => d.recipe.key)
-        .attr("checked", d => d.selected ? "" : null)
-        .on("change", mineHandler)
-    cell.append("label")
-        .attr("for", d => d.id)
-        .append("svg")
-            .attr("viewBox", "0,0,32,32")
-            .style("width", 32)
-            .style("height", 32)
-            .append("rect")
-                .attr("x", 0)
-                .attr("y", 0)
-                .attr("width", 32)
-                .attr("height", 32)
-                .attr("rx", 4)
-                .attr("ry", 4)
 }
 
 // resource priority

@@ -91,6 +91,17 @@ export interface Belt {
     icon: Icon
 }
 
+export interface ResourcePurity {
+    key: string
+    name: string
+    factor: Rational
+}
+
+export interface MinerSetting {
+    miner: Building
+    purity: ResourcePurity
+}
+
 export interface Totals {
     rates: Map<Recipe, Rational>
     surplus: Map<Item, Rational>
@@ -151,6 +162,10 @@ export interface FactorySpec {
     buildTargets: BuildTargetLike[]
     disable: Set<Recipe>
     ignore: Set<Item>
+    // Keyed by building category.
+    buildings: Map<string, Building[]>
+    miners: Map<string, Building>
+    minerSettings: Map<Recipe, MinerSetting>
     overclock: Map<Recipe, Rational>
     somersloop: Map<Recipe, Rational>
     format: Formatter
@@ -166,6 +181,9 @@ export interface FactorySpec {
     getPowerUsage(recipe: Recipe, rate: Rational): { average: Rational; peak: Rational }
     getRecipes(item: Item): Recipe[]
     toggleIgnore(item: Item): void
+    setDisable(recipe: Recipe): void
+    setEnable(recipe: Recipe): void
+    setMiner(recipe: Recipe, miner: Building, purity: ResourcePurity): void
     addTarget(itemKey?: string): BuildTargetLike
     removeTarget(target: BuildTargetLike): void
     setHash(): void
