@@ -184,12 +184,15 @@ function renderPrecisions(settings) {
     if (settings.has("rp")) {
         spec.format.ratePrecision = Number(settings.get("rp"))
     }
-    d3.select("#rprec").attr("value", spec.format.ratePrecision)
+    // These controls live in App.vue's template. Vue writes value/checked as
+    // DOM properties, which sets the element's dirty flag, after which the
+    // content attribute no longer drives what is displayed. Write the property.
+    d3.select("#rprec").property("value", spec.format.ratePrecision)
     spec.format.countPrecision = DEFAULT_COUNT_PRECISION
     if (settings.has("cp")) {
         spec.format.countPrecision = Number(settings.get("cp"))
     }
-    d3.select("#cprec").attr("value", spec.format.countPrecision)
+    d3.select("#cprec").property("value", spec.format.countPrecision)
 }
 
 // value format
@@ -316,13 +319,14 @@ function renderVisualizer(settings) {
     } else {
         setVisualizerType(DEFAULT_VISUALIZER)
     }
-    d3.select(`#${visualizerType}_type`).attr("checked", true)
+    // See renderPrecisions: these radios are Vue-rendered, so set the property.
+    d3.select(`#${visualizerType}_type`).property("checked", true)
     if (settings.has("vr")) {
         setVisualizerRender(settings.get("vr"))
     } else {
         setVisualizerRender(DEFAULT_RENDER)
     }
-    d3.select(`#${visualizerRender}_render`).attr("checked", true)
+    d3.select(`#${visualizerRender}_render`).property("checked", true)
 }
 
 // recipe disabling
@@ -490,7 +494,7 @@ function renderResourcePriorities(settings) {
 
 function renderDebugCheckbox(settings) {
     spec.debug = settings.has("debug")
-    d3.select("#render_debug").attr("checked", spec.debug ? true : null)
+    d3.select("#render_debug").property("checked", spec.debug)
 }
 
 export function renderSettings(settings) {
