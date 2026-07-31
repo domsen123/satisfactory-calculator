@@ -70,6 +70,31 @@ function onBuildingsChange(event: Event): void {
 function onRateChange(event: Event): void {
     store.setTargetRate(props.view.target, (event.target as HTMLInputElement).value)
 }
+
+// Returns the step a wheel event asks for, or 0 when the page should scroll
+// instead. Only the focused input reacts, so scrolling past a row cannot
+// silently rewrite it.
+function wheelStep(event: WheelEvent): number {
+    if (document.activeElement !== event.currentTarget || event.deltaY === 0) {
+        return 0
+    }
+    event.preventDefault()
+    return (event.deltaY < 0 ? 1 : -1) * (event.shiftKey ? 10 : 1)
+}
+
+function onBuildingsWheel(event: WheelEvent): void {
+    const step = wheelStep(event)
+    if (step !== 0) {
+        store.stepTargetBuildings(props.view.target, step)
+    }
+}
+
+function onRateWheel(event: WheelEvent): void {
+    const step = wheelStep(event)
+    if (step !== 0) {
+        store.stepTargetRate(props.view.target, step)
+    }
+}
 </script>
 
 <template>
@@ -132,9 +157,10 @@ function onRateChange(event: Event): void {
         <input
             type="text"
             size="3"
-            title="Enter a value to specify the number of buildings. The rate will be determined based on the number of items a single building can make."
+            title="Enter a value to specify the number of buildings. The rate will be determined based on the number of items a single building can make. While focused, the mouse wheel steps the value by 1, or by 10 with shift."
             :value="view.buildingsText"
             @change="onBuildingsChange"
+            @wheel="onBuildingsWheel"
         >
 
         <label :class="{ selected: !view.changedBuilding }"> Items/{{ settings.longRate }}: </label>
@@ -142,9 +168,10 @@ function onRateChange(event: Event): void {
         <input
             type="text"
             size="5"
-            title="Enter a value to specify the rate. The number of buildings will be determined based on the rate."
+            title="Enter a value to specify the rate. The number of buildings will be determined based on the rate. While focused, the mouse wheel steps the value by 1, or by 10 with shift."
             :value="view.rateText"
             @change="onRateChange"
+            @wheel="onRateWheel"
         >
     </li>
 </template>

@@ -380,6 +380,32 @@ export const useSpecStore = defineStore("spec", () => {
         spec.updateSolution()
     }
 
+    // The input texts are whatever the user typed or the formatter produced, so
+    // they can be a fraction ("1+1/2") or the "N/A" the buildings field shows
+    // for a recipe without a rate. Anything unparsable steps from zero, and no
+    // input goes negative.
+    function stepText(text: string, delta: number): Rational {
+        let value: Rational
+        try {
+            value = Rational.from_string(text.trim())
+        } catch {
+            value = zero
+        }
+        value = value.add(Rational.from_float(delta))
+        return value.less(zero) ? zero : value
+    }
+
+    function stepTargetBuildings(target: BuildTargetLike, delta: number): void {
+        setTargetBuildings(target, spec.format.count(stepText(target.buildingsText, delta)))
+    }
+
+    function stepTargetRate(target: BuildTargetLike, delta: number): void {
+        // rateText is in display-rate units, while format.rate scales into them,
+        // so the stepped value has to be divided back out first.
+        const rate = stepText(target.rateText, delta).div(spec.format.rateFactor)
+        setTargetRate(target, spec.format.rate(rate))
+    }
+
     function toggleIgnore(item: Item): void {
         spec.toggleIgnore(item)
         spec.updateSolution()
@@ -448,5 +474,7 @@ export const useSpecStore = defineStore("spec", () => {
         setTargetRecipe,
         setTargetBuildings,
         setTargetRate,
+        stepTargetBuildings,
+        stepTargetRate,
     }
 })
